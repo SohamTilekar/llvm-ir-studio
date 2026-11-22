@@ -1,0 +1,19 @@
+[package]
+name = "llvm-ir-ls"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ir-core = { workspace = true }
+ir-version = { workspace = true }
+ir-analysis = { workspace = true }
+ir-docs = { workspace = true }
+ir-viz = { workspace = true }
+ir-lsp = { workspace = true }
+tower-lsp = { workspace = true }
+tokio = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

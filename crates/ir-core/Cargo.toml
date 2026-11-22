@@ -1,0 +1,10 @@
+[package]
+name = "ir-core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ropey = { workspace = true }
+tree-sitter = { workspace = true }
+tree-sitter-llvm = { workspace = true }
+tower-lsp = { workspace = true }

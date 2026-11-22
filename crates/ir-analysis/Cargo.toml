@@ -1,0 +1,12 @@
+[package]
+name = "ir-analysis"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ir-core = { workspace = true }
+ir-version = { workspace = true }
+tree-sitter = { workspace = true }
+tower-lsp = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

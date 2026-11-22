@@ -1,0 +1,20 @@
+id = "llvm-ir"
+name = "LLVM IR"
+version = "0.1.0"
+schema_version = 1
+authors = ["Soham <soham@local>"]
+description = "Universal LLVM IR Language Server & Visualizer for Zed"
+repository = "https://github.com/llvm-ir-ls/llvm-ir-ls"
+
+[languages.llvm]
+name = "LLVM"
+grammar = "llvm"
+path_suffixes = ["ll"]
+
+[language_servers.llvm-ir-ls]
+name = "llvm-ir-ls"
+language = "LLVM"
+
+[grammars.llvm]
+repository = "https://github.com/tree-sitter/tree-sitter-LLVM"
+commit = "main"

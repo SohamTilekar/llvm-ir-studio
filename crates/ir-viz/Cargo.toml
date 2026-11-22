@@ -1,0 +1,9 @@
+[package]
+name = "ir-viz"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ir-analysis = { workspace = true }
+ir-core = { workspace = true }
+serde = { workspace = true }
