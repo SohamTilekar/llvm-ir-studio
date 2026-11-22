@@ -6,15 +6,10 @@ authors = ["Soham <soham@local>"]
 description = "Universal LLVM IR Language Server & Visualizer for Zed"
 repository = "https://github.com/llvm-ir-ls/llvm-ir-ls"
 
-[languages.llvm]
-name = "LLVM"
-grammar = "llvm"
-path_suffixes = ["ll"]
+[grammars.llvm]
+repository = "https://github.com/benwilliamgraham/tree-sitter-llvm"
+commit = "e9948edc41e9e5869af99dddb2b5ff5cc5581af6"
 
 [language_servers.llvm-ir-ls]
 name = "llvm-ir-ls"
-language = "LLVM"
-
-[grammars.llvm]
-repository = "https://github.com/tree-sitter/tree-sitter-LLVM"
-commit = "main"
+languages = ["LLVM"]
