@@ -1,8 +1,8 @@
-id = "llvm-ir"
-name = "LLVM IR"
+id = "llvm-ir-advance"
+name = "LLVM IR Advance"
 version = "0.1.0"
 schema_version = 1
-description = "Universal LLVM IR Language Server & Visualizer for Zed"
+description = "Advanced LLVM IR Language Server, SSA Def-Use analysis, CFG visualizer & diagnostics for Zed"
 repository = "https://github.com/SohamTilekar/llvm-ir-studio"
 authors = ["Soham Tilekar <sohamtilekar233@gmail.com>"]
 themes = []
