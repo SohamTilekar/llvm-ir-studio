@@ -234,7 +234,9 @@ fn extract_function_symbols(
         let mut arg_cursor = arg_list.walk();
         for child in arg_list.children(&mut arg_cursor) {
             if child.kind() == "argument" {
-                if let Some(var_node) = find_child_of_kind(child, "local_var") {
+                if let Some(var_node) = find_child_of_kind(child, "local_var")
+                    .or_else(|| find_child_of_kind(child, "value"))
+                {
                     let arg_name = var_node.text(source).to_string();
                     let sym = Symbol {
                         name: arg_name.clone(),

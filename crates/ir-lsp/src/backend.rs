@@ -109,6 +109,7 @@ impl LanguageServer for Backend {
                     trigger_characters: Some(vec![
                         "%".to_string(),
                         "@".to_string(),
+                        ".".to_string(),
                         " ".to_string(),
                     ]),
                     all_commit_characters: None,
@@ -457,92 +458,141 @@ impl LanguageServer for Backend {
             None => return Ok(None),
         };
 
+        let completion_range = get_completion_range(&state.doc, pos);
+        let prefix_start_byte = state.doc.position_to_byte(completion_range.start);
+        let cursor_byte = state.doc.position_to_byte(pos);
+        let typed_prefix = state.doc.slice(prefix_start_byte, cursor_byte);
+
+        let is_at_global = typed_prefix.starts_with('@');
+        let is_at_local = typed_prefix.starts_with('%');
+
         let mut items = Vec::new();
 
-        // 1. Instruction completions
-        let instructions = [
-            "ret", "br", "switch", "indirectbr", "invoke", "resume", "unreachable",
-            "alloca", "load", "store", "fence", "cmpxchg", "atomicrmw", "getelementptr",
-            "add", "sub", "mul", "udiv", "sdiv", "fadd", "fsub", "fmul", "fdiv",
-            "urem", "srem", "frem", "shl", "lshr", "ashr", "and", "or", "xor",
-            "icmp", "fcmp", "phi", "select", "freeze", "call", "va_arg", "landingpad",
-            "trunc", "zext", "sext", "fptrunc", "fpext", "fptoui", "fptosi", "uitofp",
-            "sitofp", "ptrtoint", "inttoptr", "bitcast", "addrspacecast",
-        ];
+        // 1. Instruction completions (suggested when not explicitly referencing a global or local register)
+        if !is_at_global && !is_at_local {
+            let instructions = [
+                "ret", "br", "switch", "indirectbr", "invoke", "resume", "unreachable",
+                "alloca", "load", "store", "fence", "cmpxchg", "atomicrmw", "getelementptr",
+                "add", "sub", "mul", "udiv", "sdiv", "fadd", "fsub", "fmul", "fdiv",
+                "urem", "srem", "frem", "shl", "lshr", "ashr", "and", "or", "xor",
+                "icmp", "fcmp", "phi", "select", "freeze", "call", "va_arg", "landingpad",
+                "trunc", "zext", "sext", "fptrunc", "fpext", "fptoui", "fptosi", "uitofp",
+                "sitofp", "ptrtoint", "inttoptr", "bitcast", "addrspacecast",
+            ];
 
-        for inst in &instructions {
-            items.push(CompletionItem {
-                label: inst.to_string(),
-                kind: Some(CompletionItemKind::KEYWORD),
-                detail: Some(format!("LLVM IR instruction '{}'", inst)),
-                insert_text: Some(inst.to_string()),
-                ..CompletionItem::default()
-            });
-        }
+            for inst in &instructions {
+                items.push(CompletionItem {
+                    label: inst.to_string(),
+                    kind: Some(CompletionItemKind::KEYWORD),
+                    detail: Some(format!("LLVM IR instruction '{}'", inst)),
+                    insert_text: None,
+                    text_edit: Some(CompletionTextEdit::Edit(TextEdit {
+                        range: completion_range,
+                        new_text: inst.to_string(),
+                    })),
+                    ..CompletionItem::default()
+                });
+            }
 
-        // 2. Types (respecting version)
-        let primitive_types = ["i1", "i8", "i16", "i32", "i64", "i128", "float", "double", "void", "label"];
-        for ty in &primitive_types {
-            items.push(CompletionItem {
-                label: ty.to_string(),
-                kind: Some(CompletionItemKind::TYPE_PARAMETER),
-                detail: Some("LLVM primitive type".to_string()),
-                ..CompletionItem::default()
-            });
-        }
+            // 2. Types (respecting version)
+            let primitive_types = ["i1", "i8", "i16", "i32", "i64", "i128", "float", "double", "void", "label"];
+            for ty in &primitive_types {
+                items.push(CompletionItem {
+                    label: ty.to_string(),
+                    kind: Some(CompletionItemKind::TYPE_PARAMETER),
+                    detail: Some("LLVM primitive type".to_string()),
+                    insert_text: None,
+                    text_edit: Some(CompletionTextEdit::Edit(TextEdit {
+                        range: completion_range,
+                        new_text: ty.to_string(),
+                    })),
+                    ..CompletionItem::default()
+                });
+            }
 
-        if state.version.supports_opaque_pointers() {
-            items.push(CompletionItem {
-                label: "ptr".to_string(),
-                kind: Some(CompletionItemKind::TYPE_PARAMETER),
-                detail: Some("Opaque pointer (LLVM 15+)".to_string()),
-                ..CompletionItem::default()
-            });
-        }
-
-        // 3. In-scope registers and basic blocks
-        for func in state.analysis.symbols.functions.values() {
-            if contains_position(&func.range, pos) {
-                for arg in &func.args {
-                    items.push(CompletionItem {
-                        label: arg.name.clone(),
-                        kind: Some(CompletionItemKind::VARIABLE),
-                        detail: Some("Parameter".to_string()),
-                        ..CompletionItem::default()
-                    });
-                }
-                for local in func.locals.values() {
-                    items.push(CompletionItem {
-                        label: local.name.clone(),
-                        kind: Some(CompletionItemKind::VARIABLE),
-                        detail: Some("SSA register".to_string()),
-                        ..CompletionItem::default()
-                    });
-                }
-                for bb in func.basic_blocks.values() {
-                    items.push(CompletionItem {
-                        label: format!("%{}", bb.name),
-                        kind: Some(CompletionItemKind::REFERENCE),
-                        detail: Some("Basic block label".to_string()),
-                        ..CompletionItem::default()
-                    });
-                }
-                break;
+            if state.version.supports_opaque_pointers() {
+                items.push(CompletionItem {
+                    label: "ptr".to_string(),
+                    kind: Some(CompletionItemKind::TYPE_PARAMETER),
+                    detail: Some("Opaque pointer (LLVM 15+)".to_string()),
+                    insert_text: None,
+                    text_edit: Some(CompletionTextEdit::Edit(TextEdit {
+                        range: completion_range,
+                        new_text: "ptr".to_string(),
+                    })),
+                    ..CompletionItem::default()
+                });
             }
         }
 
-        // 4. Globals & Functions
-        for sym in state.analysis.symbols.globals.values() {
-            items.push(CompletionItem {
-                label: sym.name.clone(),
-                kind: Some(if sym.kind == SymbolKind::Function {
-                    CompletionItemKind::FUNCTION
-                } else {
-                    CompletionItemKind::VARIABLE
-                }),
-                detail: sym.detail.clone(),
-                ..CompletionItem::default()
-            });
+        // 3. In-scope registers and basic blocks (suggested when not explicitly referencing a global)
+        if !is_at_global {
+            for func in state.analysis.symbols.functions.values() {
+                if contains_position(&func.range, pos) {
+                    for arg in &func.args {
+                        items.push(CompletionItem {
+                            label: arg.name.clone(),
+                            kind: Some(CompletionItemKind::VARIABLE),
+                            detail: Some("Parameter".to_string()),
+                            insert_text: None,
+                            text_edit: Some(CompletionTextEdit::Edit(TextEdit {
+                                range: completion_range,
+                                new_text: arg.name.clone(),
+                            })),
+                            ..CompletionItem::default()
+                        });
+                    }
+                    for local in func.locals.values() {
+                        items.push(CompletionItem {
+                            label: local.name.clone(),
+                            kind: Some(CompletionItemKind::VARIABLE),
+                            detail: Some("SSA register".to_string()),
+                            insert_text: None,
+                            text_edit: Some(CompletionTextEdit::Edit(TextEdit {
+                                range: completion_range,
+                                new_text: local.name.clone(),
+                            })),
+                            ..CompletionItem::default()
+                        });
+                    }
+                    for bb in func.basic_blocks.values() {
+                        let bb_label = format!("%{}", bb.name);
+                        items.push(CompletionItem {
+                            label: bb_label.clone(),
+                            kind: Some(CompletionItemKind::REFERENCE),
+                            detail: Some("Basic block label".to_string()),
+                            insert_text: None,
+                            text_edit: Some(CompletionTextEdit::Edit(TextEdit {
+                                range: completion_range,
+                                new_text: bb_label,
+                            })),
+                            ..CompletionItem::default()
+                        });
+                    }
+                    break;
+                }
+            }
+        }
+
+        // 4. Globals & Functions (suggested when not explicitly referencing a local register)
+        if !is_at_local {
+            for sym in state.analysis.symbols.globals.values() {
+                items.push(CompletionItem {
+                    label: sym.name.clone(),
+                    kind: Some(if sym.kind == SymbolKind::Function {
+                        CompletionItemKind::FUNCTION
+                    } else {
+                        CompletionItemKind::VARIABLE
+                    }),
+                    detail: sym.detail.clone(),
+                    insert_text: None,
+                    text_edit: Some(CompletionTextEdit::Edit(TextEdit {
+                        range: completion_range,
+                        new_text: sym.name.clone(),
+                    })),
+                    ..CompletionItem::default()
+                });
+            }
         }
 
         Ok(Some(CompletionResponse::Array(items)))
@@ -633,3 +683,54 @@ fn ranges_overlap(r1: &Range, r2: &Range) -> bool {
         || r1.start.line > r2.end.line
         || (r1.start.line == r2.end.line && r1.start.character > r2.end.character))
 }
+
+pub fn get_completion_range(doc: &Document, pos: Position) -> Range {
+    let line_idx = pos.line as usize;
+    if line_idx >= doc.len_lines() {
+        return Range { start: pos, end: pos };
+    }
+
+    let cursor_byte = doc.position_to_byte(pos);
+    let line_start_byte = doc.rope().line_to_byte(line_idx);
+    let line_str = doc.rope().line(line_idx).to_string();
+
+    let cursor_in_line = cursor_byte.saturating_sub(line_start_byte).min(line_str.len());
+    let prefix_slice = &line_str[..cursor_in_line];
+    let suffix_slice = &line_str[cursor_in_line..];
+
+    // Scan backwards from cursor_in_line to find start of prefix (including @, %, !, # sigils)
+    let mut prefix_start = cursor_in_line;
+    let chars: Vec<(usize, char)> = prefix_slice.char_indices().collect();
+
+    for &(idx, ch) in chars.iter().rev() {
+        if ch == '@' || ch == '%' || ch == '!' || ch == '#' {
+            // A sigil is always the first character of an LLVM identifier
+            prefix_start = idx;
+            break;
+        } else if ch.is_alphanumeric() || ch == '_' || ch == '.' || ch == '-' || ch == '$' {
+            prefix_start = idx;
+        } else {
+            // Non-identifier character (whitespace, delimiter, operator, etc.)
+            break;
+        }
+    }
+
+    // Scan forward from cursor to find end of current word (if cursor is inside an identifier)
+    let mut suffix_end = 0;
+    for (idx, ch) in suffix_slice.char_indices() {
+        if ch.is_alphanumeric() || ch == '_' || ch == '.' || ch == '-' || ch == '$' {
+            suffix_end = idx + ch.len_utf8();
+        } else {
+            break;
+        }
+    }
+
+    let start_byte = line_start_byte + prefix_start;
+    let end_byte = line_start_byte + cursor_in_line + suffix_end;
+
+    Range {
+        start: doc.byte_to_position(start_byte),
+        end: doc.byte_to_position(end_byte),
+    }
+}
+

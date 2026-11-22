@@ -1,6 +1,7 @@
 name = "LLVM"
 grammar = "llvm"
 path_suffixes = ["ll"]
+word_characters = ["@", "%", ".", "$"]
 line_comments = ["; "]
 autoclose_before = ";:.,=}])>"
 brackets = [

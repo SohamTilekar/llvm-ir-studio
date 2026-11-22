@@ -4,3 +4,9 @@ editors/zed/extension.wasm
 **/*.rs.bk
 *.orig
 .DS_Store
+editors/vscode/node_modules/
+editors/vscode/dist/
+*.vsix
+editors/zed/*.tar.gz
+release-assets/
+dist/

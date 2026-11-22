@@ -1,0 +1,187 @@
+{
+  "name": "llvm-ir-advance",
+  "displayName": "LLVM IR Advance",
+  "description": "Advanced LLVM IR Language Server, SSA Def-Use analysis, CFG visualizer & diagnostics",
+  "version": "0.1.0",
+  "publisher": "sohamtilekar",
+  "author": {
+    "name": "Soham Tilekar",
+    "email": "sohamtilekar233@gmail.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/SohamTilekar/llvm-ir-studio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SohamTilekar/llvm-ir-studio"
+  },
+  "bugs": {
+    "url": "https://github.com/SohamTilekar/llvm-ir-studio/issues"
+  },
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Visualization"
+  ],
+  "keywords": [
+    "llvm",
+    "llvm-ir",
+    "lsp",
+    "cfg",
+    "compiler"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "onLanguage:llvm"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "llvm",
+        "aliases": [
+          "LLVM IR",
+          "llvm",
+          "LLVM"
+        ],
+        "extensions": [
+          ".ll"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "llvm",
+        "scopeName": "source.llvm",
+        "path": "./syntaxes/llvm.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "llvm-ir.restartServer",
+        "title": "LLVM IR: Restart Language Server",
+        "category": "LLVM IR"
+      },
+      {
+        "command": "llvm-ir.showCfg",
+        "title": "LLVM IR: Show Function CFG",
+        "category": "LLVM IR",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "llvm-ir.checkFile",
+        "title": "LLVM IR: Run Diagnostics Check",
+        "category": "LLVM IR",
+        "icon": "$(pass)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "llvm-ir.showCfg",
+          "when": "editorLangId == llvm",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "llvm-ir.showCfg",
+          "when": "editorLangId == llvm",
+          "group": "1_modification@1"
+        },
+        {
+          "command": "llvm-ir.checkFile",
+          "when": "editorLangId == llvm",
+          "group": "1_modification@2"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "llvm-ir.restartServer"
+        },
+        {
+          "command": "llvm-ir.showCfg",
+          "when": "editorLangId == llvm"
+        },
+        {
+          "command": "llvm-ir.checkFile",
+          "when": "editorLangId == llvm"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "LLVM IR Advance",
+      "properties": {
+        "llvm-ir.serverPath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Path to the llvm-ir-ls executable. If not specified, the extension searches PATH, ~/.local/bin, ~/.cargo/bin, or downloads from GitHub Releases."
+        },
+        "llvm-ir.version": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "default": null,
+          "enum": [
+            null,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "markdownDescription": "Explicit target LLVM IR version (e.g. `14`, `17`, `18`). If null, auto-detected from file content or system `llvm-as`."
+        },
+        "llvm-ir.verifyOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run external verifier (llvm-as) on file save if available."
+        },
+        "llvm-ir.llvmAsPath": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null,
+          "description": "Custom path to the llvm-as binary for on-save deep verification."
+        },
+        "llvm-ir.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the LLVM IR language server."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "compile": "tsc -p ./ --noEmit",
+    "build": "node esbuild.js --production",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package --no-dependencies --skip-license"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^3.2.1",
+    "esbuild": "^0.24.0",
+    "typescript": "^5.4.0"
+  }
+}

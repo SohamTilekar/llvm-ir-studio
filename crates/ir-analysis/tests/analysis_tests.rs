@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use ir_analysis::*;
-    use ir_core::{Document, LlvmParser, NodeExt};
+    use ir_core::{Document, LlvmParser};
     use ir_version::LlvmVersion;
 
     #[test]
@@ -16,10 +16,6 @@ entry:
         let mut parser = LlvmParser::new();
         let doc = Document::new(text);
         let tree = parser.parse(text, None).unwrap();
-        let mut cursor = tree.root_node().walk();
-        for child in tree.root_node().children(&mut cursor) {
-            println!("CHILD KIND: {} ({})", child.kind(), child.text(text));
-        }
         let res = analyze(&doc, &tree, LlvmVersion::V18);
 
         assert!(res.diagnostics.is_empty(), "Expected no diagnostics, got {:?}", res.diagnostics);

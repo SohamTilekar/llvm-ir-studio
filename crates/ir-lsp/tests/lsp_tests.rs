@@ -173,6 +173,90 @@ entry:
         assert!(items.iter().any(|i| i.label == "i32"));
     }
 
+    // 9b. Test completion when user types '@' (sigil prefix replacement without doubling)
+    let at_uri = Url::parse("file:///workspace/at_test.ll").unwrap();
+    backend
+        .did_open(DidOpenTextDocumentParams {
+            text_document: TextDocumentItem {
+                uri: at_uri.clone(),
+                language_id: "llvm".to_string(),
+                version: 1,
+                text: "define void @calculate() {\nentry:\n  call void @calc\n  ret void\n}\n".to_string(),
+            },
+        })
+        .await;
+
+    // Position is line 2, character 17 (right after '@calc')
+    let at_completions = backend
+        .completion(CompletionParams {
+            text_document_position: TextDocumentPositionParams {
+                text_document: TextDocumentIdentifier { uri: at_uri.clone() },
+                position: Position { line: 2, character: 17 },
+            },
+            work_done_progress_params: Default::default(),
+            partial_result_params: Default::default(),
+            context: None,
+        })
+        .await
+        .unwrap();
+
+    assert!(at_completions.is_some());
+    if let Some(CompletionResponse::Array(items)) = at_completions {
+        let calc_item = items.iter().find(|i| i.label == "@calculate");
+        assert!(calc_item.is_some(), "Should find @calculate in completions");
+        let calc_item = calc_item.unwrap();
+        // Verify text_edit range replaces from character 12 ('@') to 17 (end of '@calc')
+        if let Some(CompletionTextEdit::Edit(edit)) = &calc_item.text_edit {
+            assert_eq!(edit.new_text, "@calculate");
+            assert_eq!(edit.range.start, Position { line: 2, character: 12 });
+            assert_eq!(edit.range.end, Position { line: 2, character: 17 });
+        } else {
+            panic!("Expected CompletionTextEdit::Edit on @calculate");
+        }
+    }
+
+    // 9c. Test completion when user types '%' (e.g. '%v')
+    let pct_uri = Url::parse("file:///workspace/pct_test.ll").unwrap();
+    backend
+        .did_open(DidOpenTextDocumentParams {
+            text_document: TextDocumentItem {
+                uri: pct_uri.clone(),
+                language_id: "llvm".to_string(),
+                version: 1,
+                text: "define i32 @foo(i32 %val) {\nentry:\n  %r = add i32 %v, 1\n  ret i32 %r\n}\n".to_string(),
+            },
+        })
+        .await;
+
+    // Position is line 2, character 17 (right after '%v')
+    let pct_completions = backend
+        .completion(CompletionParams {
+            text_document_position: TextDocumentPositionParams {
+                text_document: TextDocumentIdentifier { uri: pct_uri.clone() },
+                position: Position { line: 2, character: 17 },
+            },
+            work_done_progress_params: Default::default(),
+            partial_result_params: Default::default(),
+            context: None,
+        })
+        .await
+        .unwrap();
+
+    assert!(pct_completions.is_some());
+    if let Some(CompletionResponse::Array(items)) = pct_completions {
+        let val_item = items.iter().find(|i| i.label == "%val");
+        assert!(val_item.is_some(), "Should find %val in completions");
+        let val_item = val_item.unwrap();
+        // Verify text_edit range replaces from character 15 ('%') to 17 (end of '%v')
+        if let Some(CompletionTextEdit::Edit(edit)) = &val_item.text_edit {
+            assert_eq!(edit.new_text, "%val");
+            assert_eq!(edit.range.start, Position { line: 2, character: 15 });
+            assert_eq!(edit.range.end, Position { line: 2, character: 17 });
+        } else {
+            panic!("Expected CompletionTextEdit::Edit on %val");
+        }
+    }
+
     // 10. Test Prepare Rename & Rename on '%res'
     let prep_rename = backend
         .prepare_rename(TextDocumentPositionParams {
