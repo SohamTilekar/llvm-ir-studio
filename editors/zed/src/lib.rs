@@ -14,7 +14,7 @@ impl zed::Extension for LlvmIrExtension {
     ) -> zed::Result<zed::Command> {
         let binary_path = worktree
             .which("llvm-ir-ls")
-            .unwrap_or_else(|| "llvm-ir-ls".to_string());
+            .unwrap_or_else(|| "/home/soham/.local/bin/llvm-ir-ls".to_string());
 
         Ok(zed::Command {
             command: binary_path,
