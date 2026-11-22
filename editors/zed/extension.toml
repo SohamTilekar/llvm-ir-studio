@@ -2,14 +2,25 @@ id = "llvm-ir"
 name = "LLVM IR"
 version = "0.1.0"
 schema_version = 1
-authors = ["Soham <soham@local>"]
 description = "Universal LLVM IR Language Server & Visualizer for Zed"
 repository = "https://github.com/llvm-ir-ls/llvm-ir-ls"
+authors = ["Soham <soham@local>"]
+themes = []
+icon_themes = []
+languages = ["languages/llvm"]
+capabilities = []
+
+[lib]
+kind = "Rust"
+version = "0.7.0"
 
 [grammars.llvm]
 repository = "https://github.com/benwilliamgraham/tree-sitter-llvm"
-commit = "e9948edc41e9e5869af99dddb2b5ff5cc5581af6"
+rev = "e9948edc41e9e5869af99dddb2b5ff5cc5581af6"
 
 [language_servers.llvm-ir-ls]
 name = "llvm-ir-ls"
 languages = ["LLVM"]
+
+[language_servers.llvm-ir-ls.language_ids]
+LLVM = "llvm"
