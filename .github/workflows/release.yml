@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -31,7 +32,7 @@ jobs:
             archive_ext: tar.gz
             use_cross: false
 
-          - os: macos-13
+          - os: macos-latest
             target: x86_64-apple-darwin
             archive_ext: tar.gz
             use_cross: false
@@ -50,9 +51,11 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
-      - name: Install cross (if needed)
+      - name: Install cross (prebuilt)
         if: ${{ matrix.use_cross }}
-        run: cargo install cross --git https://github.com/cross-rs/cross
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cross
 
       - name: Build binary (native)
         if: ${{ !matrix.use_cross }}
