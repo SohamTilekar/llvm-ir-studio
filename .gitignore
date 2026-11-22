@@ -1,5 +1,6 @@
 target/
 editors/zed/grammars/
+editors/zed/extension.wasm
 **/*.rs.bk
 *.orig
 .DS_Store

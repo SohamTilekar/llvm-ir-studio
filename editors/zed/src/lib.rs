@@ -12,9 +12,9 @@ impl zed::Extension for LlvmIrExtension {
         _language_server_id: &zed::LanguageServerId,
         worktree: &zed::Worktree,
     ) -> zed::Result<zed::Command> {
-        let binary_path = worktree.which("llvm-ir-ls").ok_or_else(|| {
-            "llvm-ir-ls binary not found on PATH. Please compile or install llvm-ir-ls.".to_string()
-        })?;
+        let binary_path = worktree
+            .which("llvm-ir-ls")
+            .unwrap_or_else(|| "llvm-ir-ls".to_string());
 
         Ok(zed::Command {
             command: binary_path,

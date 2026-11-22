@@ -17,11 +17,9 @@
 
 [
   "to"
-  "nneg"
   "nuw"
   "nsw"
   "exact"
-  "disjoint"
   "unwind"
   "from"
   "cleanup"
@@ -92,17 +90,30 @@
 (unnamed_addr) @keyword
 (attribute_name) @keyword
 
+(function_header [
+    (linkage)
+    (calling_conv)
+    (unnamed_addr)
+  ] @keyword.function)
+
 (number) @constant.numeric.integer
 (comment) @comment
 (string) @string
 (cstring) @string
 (label) @label
+(_ inst_name: "ret" @keyword.control.return)
 (float) @constant.numeric.float
 
 [
   (local_var)
   (global_var)
 ] @variable
+
+[
+  (struct_value)
+  (array_value)
+  (vector_value)
+] @constructor
 
 [
   "("
@@ -113,6 +124,8 @@
   "}"
   "<"
   ">"
+  "<{"
+  "}>"
 ] @punctuation.bracket
 
 [
