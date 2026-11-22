@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive_ext: tar.gz
+            use_cross: false
+
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            archive_ext: tar.gz
+            use_cross: true
+
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            archive_ext: tar.gz
+            use_cross: false
+
+          - os: macos-13
+            target: x86_64-apple-darwin
+            archive_ext: tar.gz
+            use_cross: false
+
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive_ext: zip
+            use_cross: false
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross (if needed)
+        if: ${{ matrix.use_cross }}
+        run: cargo install cross --git https://github.com/cross-rs/cross
+
+      - name: Build binary (native)
+        if: ${{ !matrix.use_cross }}
+        run: cargo build --release --locked --target ${{ matrix.target }} --bin llvm-ir-ls
+
+      - name: Build binary (cross)
+        if: ${{ matrix.use_cross }}
+        run: cross build --release --locked --target ${{ matrix.target }} --bin llvm-ir-ls
+
+      - name: Package Unix Archive (.tar.gz)
+        if: ${{ matrix.archive_ext == 'tar.gz' }}
+        shell: bash
+        run: |
+          BIN_PATH="target/${{ matrix.target }}/release/llvm-ir-ls"
+          ARCHIVE_NAME="llvm-ir-ls-${{ github.ref_name }}-${{ matrix.target }}.tar.gz"
+          cp "${BIN_PATH}" ./llvm-ir-ls
+          tar -czvf "${ARCHIVE_NAME}" llvm-ir-ls
+          echo "ARCHIVE_PATH=${ARCHIVE_NAME}" >> $GITHUB_ENV
+
+      - name: Package Windows Archive (.zip)
+        if: ${{ matrix.archive_ext == 'zip' }}
+        shell: pwsh
+        run: |
+          $binPath = "target/${{ matrix.target }}/release/llvm-ir-ls.exe"
+          $archiveName = "llvm-ir-ls-${{ github.ref_name }}-${{ matrix.target }}.zip"
+          Copy-Item $binPath -Destination "llvm-ir-ls.exe"
+          Compress-Archive -Path "llvm-ir-ls.exe" -DestinationPath $archiveName
+          echo "ARCHIVE_PATH=$archiveName" >> $env:GITHUB_ENV
+
+      - name: Upload artifact for release job
+        uses: actions/upload-artifact@v4
+        with:
+          name: asset-${{ matrix.target }}
+          path: ${{ env.ARCHIVE_PATH }}
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all built assets
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Generate Checksums
+        shell: bash
+        run: |
+          cd release-assets
+          sha256sum * > SHA256SUMS.txt
+          ls -lh
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/*
+          generate_release_notes: true
+          draft: false
+          prerelease: false
