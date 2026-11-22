@@ -9,6 +9,9 @@ members = [
     "crates/ir-lsp",
     "crates/llvm-ir-ls",
 ]
+exclude = [
+    "editors/zed",
+]
 
 [workspace.dependencies]
 ir-core = { path = "crates/ir-core" }

@@ -1,4 +1,5 @@
-/target
+target/
+editors/zed/grammars/
 **/*.rs.bk
 *.orig
 .DS_Store
