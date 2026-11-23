@@ -1,0 +1,8 @@
+{
+  "lsp": {
+    "llvm-ir-ls": {
+      "command": ["llvm-ir-ls", "lsp"],
+      "filePatterns": ["*.ll"]
+    }
+  }
+}

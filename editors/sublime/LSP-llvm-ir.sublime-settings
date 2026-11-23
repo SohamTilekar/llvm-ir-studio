@@ -1,0 +1,17 @@
+{
+  // Advanced LLVM IR Language Server (llvm-ir-ls) configuration for Sublime Text LSP
+  "command": [
+    "llvm-ir-ls",
+    "lsp"
+  ],
+  "selector": "source.llvm",
+  "schemes": [
+    "file"
+  ],
+  "syntaxes": [
+    "Packages/LLVM/LLVM.sublime-syntax",
+    "Packages/User/LLVM.sublime-syntax",
+    "LLVM"
+  ],
+  "enabled": true
+}

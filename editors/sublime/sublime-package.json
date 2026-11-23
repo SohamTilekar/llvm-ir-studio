@@ -1,0 +1,37 @@
+{
+  "contributions": {
+    "settings": [
+      {
+        "file_patterns": [
+          "/LSP-llvm-ir.sublime-settings"
+        ],
+        "schema": {
+          "$id": "sublime://settings/LSP-llvm-ir",
+          "properties": {
+            "command": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": [
+                "llvm-ir-ls",
+                "lsp"
+              ],
+              "description": "Command and arguments to start the Advanced LLVM IR Language Server binary."
+            },
+            "selector": {
+              "type": "string",
+              "default": "source.llvm",
+              "description": "Scope selector for activating the language server."
+            },
+            "enabled": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable or disable the language server."
+            }
+          }
+        }
+      }
+    ]
+  }
+}

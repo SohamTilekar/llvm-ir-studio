@@ -1,0 +1,10 @@
+{
+  "servers": {
+    "llvm": {
+      "command": ["llvm-ir-ls", "lsp"],
+      "rootIndicationFileNames": [".llvm-ir-ls.toml", ".git"],
+      "url": "https://github.com/SohamTilekar/llvm-ir-studio",
+      "highlightingModeRegex": "^LLVM.*$"
+    }
+  }
+}

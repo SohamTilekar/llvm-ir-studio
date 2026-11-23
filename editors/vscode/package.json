@@ -1,8 +1,9 @@
 {
-  "name": "llvm-ir-advance",
-  "displayName": "LLVM IR Advance",
+  "name": "llvm-ir-studio",
+  "displayName": "LLVM IR Studio",
   "description": "Advanced LLVM IR Language Server, SSA Def-Use analysis, CFG visualizer & diagnostics",
-  "version": "0.1.0",
+  "version": "0.1.1",
+  "icon": "icon.png",
   "publisher": "sohamtilekar",
   "author": {
     "name": "Soham Tilekar",

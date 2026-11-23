@@ -1,0 +1,15 @@
+# Helix Language Server Configuration for LLVM IR (.ll)
+# Append this to ~/.config/helix/languages.toml
+
+[[language]]
+name = "llvm"
+scope = "source.llvm"
+injection-regex = "llvm"
+file-types = ["ll"]
+roots = [".llvm-ir-ls.toml", ".git"]
+language-servers = ["llvm-ir-ls"]
+indent = { tab-width = 2, unit = "  " }
+
+[language-server.llvm-ir-ls]
+command = "llvm-ir-ls"
+args = ["lsp"]

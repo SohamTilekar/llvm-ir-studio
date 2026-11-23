@@ -10,3 +10,4 @@ editors/vscode/dist/
 editors/zed/*.tar.gz
 release-assets/
 dist/
+skills/

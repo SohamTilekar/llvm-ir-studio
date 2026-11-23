@@ -1,4 +1,7 @@
-# Zed Extension for LLVM IR (`llvm-ir-ls`)
+<p align="center">
+  <img src="icon.png" alt="LLVM IR Advance for Zed" width="128" height="128">
+  <h1 align="center">LLVM IR Advance for Zed</h1>
+</p>
 
 This extension brings first-class LLVM IR language support and LSP features to [Zed](https://zed.dev).
 

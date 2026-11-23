@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://github.com/mason-org/registry-schema/releases/latest/download/package.schema.json
+name: llvm-ir-ls
+aliases:
+  - llvm-ir-advance
+description: |
+  LLVM IR Language Server & Visualizer (`llvm-ir-ls`): Pure Rust, version-aware (LLVM 14 to 21+), real-time diagnostics, SSA def-use chains, and interactive CFG visualization.
+homepage: https://github.com/SohamTilekar/llvm-ir-studio
+licenses:
+  - MIT
+languages:
+  - LLVM
+categories:
+  - LSP
+source:
+  id: pkg:github/SohamTilekar/llvm-ir-studio@v0.1.0
+  asset:
+    - target: linux_x64_gnu
+      file: llvm-ir-ls-{{version}}-x86_64-unknown-linux-gnu.tar.gz
+      bin: llvm-ir-ls
+    - target: linux_arm64_gnu
+      file: llvm-ir-ls-{{version}}-aarch64-unknown-linux-gnu.tar.gz
+      bin: llvm-ir-ls
+    - target: darwin_arm64
+      file: llvm-ir-ls-{{version}}-aarch64-apple-darwin.tar.gz
+      bin: llvm-ir-ls
+    - target: darwin_x64
+      file: llvm-ir-ls-{{version}}-x86_64-apple-darwin.tar.gz
+      bin: llvm-ir-ls
+    - target: win_x64
+      file: llvm-ir-ls-{{version}}-x86_64-pc-windows-msvc.zip
+      bin: llvm-ir-ls.exe
+schemas:
+  lsp:
+    bin:
+      llvm-ir-ls: "{{source.asset.bin}}"
+    neovim:
+      lspconfig: llvm_ir_ls

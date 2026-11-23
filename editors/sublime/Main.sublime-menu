@@ -1,0 +1,39 @@
+[
+  {
+    "caption": "Preferences",
+    "mnemonic": "n",
+    "id": "preferences",
+    "children": [
+      {
+        "caption": "Package Settings",
+        "mnemonic": "P",
+        "id": "package-settings",
+        "children": [
+          {
+            "caption": "LSP",
+            "children": [
+              {
+                "caption": "Servers",
+                "children": [
+                  {
+                    "caption": "LSP-llvm-ir",
+                    "children": [
+                      {
+                        "command": "edit_settings",
+                        "args": {
+                          "base_file": "${packages}/LSP-llvm-ir/LSP-llvm-ir.sublime-settings",
+                          "default": "{\n  \"command\": [\"llvm-ir-ls\", \"lsp\"],\n  \"enabled\": true\n}\n"
+                        },
+                        "caption": "Settings"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,4 +1,7 @@
-# LLVM IR Advance for VS Code
+<p align="center">
+  <img src="icon.png" alt="LLVM IR Advance Icon" width="128" height="128">
+  <h1 align="center">LLVM IR Advance for VS Code</h1>
+</p>
 
 VS Code extension for LLVM IR (`.ll`), powered by `llvm-ir-ls`.
 
