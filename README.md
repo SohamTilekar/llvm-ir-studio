@@ -16,15 +16,9 @@
 
 # LLVM IR Studio (`llvm-ir-ls`)
 
-> Lightweight, version-aware, native LLVM IR Language Server & Visualizer written in Rust.
+**LLVM IR Language Server with editor integration & visualizer.**
 
-`llvm-ir-ls` brings first-class developer tooling for LLVM Intermediate Representation (`.ll`) files across modern editors with:
-- **Zero `libLLVM` C++ linking**: Pure Rust implementation with instantaneous startup and tiny memory footprint.
-- **LLVM Version Awareness**: Tracks syntax evolution across LLVM 14 to 21+ (opaque `ptr` vs typed pointers `i32*`, explicit `getelementptr` types, deprecated attributes like `readnone` → `memory(...)`).
-- **Incremental & Error-Tolerant**: Powered by Tree-sitter for uninterrupted syntax parsing even on partially written or broken IR files.
-- **SSA Def-Use Analysis**: Instant Go-to-Definition, Find All References, and in-function SSA register/basic block renaming.
-- **Control Flow Graph (CFG) Visualizer**: Interactive flowcharts rendered directly inside VS Code or exported to Mermaid, Graphviz DOT, and standalone HTML/SVG.
-- **AI Coding Agent Ready**: Machine-readable diagnostic codes (`LLVM-SYNTAX-001`, `LLVM-VER-001`, `LLVM-SSA-001`, `LLVM-CFG-001`), related information spans, and quick-fix code actions.
+`llvm-ir-ls` is a lightweight, version-aware, native LLVM IR Language Server & Visualizer written in Rust.
 
 ---
 
@@ -264,6 +258,18 @@ See [`editors/kate`](editors/kate) for details. Enable the built-in **LSP Client
   }
 }
 ```
+
+---
+
+## Architecture & Core Features
+
+`llvm-ir-ls` brings first-class developer tooling for LLVM Intermediate Representation (`.ll`) files:
+- **Zero `libLLVM` C++ linking**: Pure Rust implementation with instantaneous startup and tiny memory footprint.
+- **LLVM Version Awareness**: Tracks syntax evolution across LLVM 14 to 21+ (opaque `ptr` vs typed pointers `i32*`, explicit `getelementptr` types, deprecated attributes like `readnone` → `memory(...)`).
+- **Incremental & Error-Tolerant**: Powered by Tree-sitter for uninterrupted syntax parsing even on partially written or broken IR files.
+- **SSA Def-Use Analysis**: Instant Go-to-Definition, Find All References, and in-function SSA register/basic block renaming.
+- **Control Flow Graph (CFG) Visualizer**: Interactive flowcharts rendered directly inside VS Code or exported to Mermaid, Graphviz DOT, and standalone HTML/SVG.
+- **AI Coding Agent Ready**: Machine-readable diagnostic codes (`LLVM-SYNTAX-001`, `LLVM-VER-001`, `LLVM-SSA-001`, `LLVM-CFG-001`), related information spans, and quick-fix code actions.
 
 ---
 
