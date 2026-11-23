@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLVM IR Studio - Interactive In-Browser Editor & CFG Visualizer</title>
+  <meta name="description" content="In-browser LLVM IR editor and real-time control flow graph visualizer for compiler developers, students, and engineers.">
+  <link rel="icon" type="image/png" href="assets/icon.png">
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Monaco Editor loader -->
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/min/vs/loader.js"></script>
+
+  <!-- Mermaid.js ESM -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    window.mermaid = mermaid;
+  </script>
+</head>
+<body>
+  <!-- Top Navigation & Global Controls -->
+  <header>
+    <div class="brand">
+      <img src="assets/icon.png" alt="LLVM IR Studio" class="brand-icon" onerror="this.style.display='none'">
+      <div class="brand-title">
+        LLVM IR <span>Studio</span>
+      </div>
+      <span class="tag-version">Web Playground</span>
+    </div>
+
+    <div class="toolbar-controls">
+      <!-- Preset Snippets -->
+      <select id="preset-select" title="Load sample LLVM IR snippets"></select>
+
+      <!-- Target LLVM Version -->
+      <select id="version-select" title="Select target LLVM version for version-specific verification">
+        <option value="21">LLVM 21 (Latest)</option>
+        <option value="20">LLVM 20</option>
+        <option value="19">LLVM 19</option>
+        <option value="18" selected>LLVM 18</option>
+        <option value="17">LLVM 17</option>
+        <option value="16">LLVM 16</option>
+        <option value="15">LLVM 15</option>
+        <option value="14">LLVM 14 (Typed Ptrs)</option>
+      </select>
+
+      <!-- Function Switcher -->
+      <select id="function-select" title="Select function to visualize"></select>
+
+      <!-- Shareable URL -->
+      <button id="btn-share" class="primary" title="Copy shareable link with encoded code">
+        🔗 Share URL
+      </button>
+
+      <!-- GitHub Link -->
+      <a href="https://github.com/SohamTilekar/llvm-ir-studio" target="_blank" rel="noopener" style="text-decoration:none;">
+        <button title="View on GitHub">⭐ GitHub</button>
+      </a>
+    </div>
+  </header>
+
+  <!-- Split Workspace -->
+  <main id="workspace">
+    <!-- Left Pane: LLVM IR Editor -->
+    <section id="editor-pane">
+      <div class="pane-header">
+        <span class="pane-title">LLVM IR Editor</span>
+        <span id="diag-badge" class="badge ok">0 errors</span>
+      </div>
+      <div id="editor-container"></div>
+    </section>
+
+    <!-- Resizable Divider -->
+    <div id="pane-divider" title="Drag to resize panes"></div>
+
+    <!-- Right Pane: Visualization & Analysis -->
+    <section id="viewer-pane">
+      <div class="pane-header">
+        <div class="tabs-bar">
+          <button class="tab-btn active" data-tab="graph">CFG Graph</button>
+          <button class="tab-btn" data-tab="mermaid">Mermaid Source</button>
+          <button class="tab-btn" data-tab="dot">Graphviz DOT</button>
+          <button class="tab-btn" data-tab="diags">Diagnostics & SSA</button>
+        </div>
+
+        <div class="toolbar-controls">
+          <button id="btn-export-svg" title="Download graph as SVG vector image">Export SVG</button>
+          <button id="btn-copy-mermaid" title="Copy Mermaid text">Copy Mermaid</button>
+          <button id="btn-copy-dot" title="Copy DOT graph">Copy DOT</button>
+        </div>
+      </div>
+
+      <!-- Tab 1: Interactive CFG Viewport with Floating HUD -->
+      <div id="panel-graph" class="view-panel active">
+        <!-- Floating Canvas HUD -->
+        <div id="canvas-hud">
+          <div class="hud-group">
+            <input id="block-search" class="hud-search" type="text" placeholder="Jump to block..." title="Search and jump to a basic block" />
+          </div>
+
+          <div class="hud-divider"></div>
+
+          <div class="hud-group">
+            <select id="view-mode-select" class="hud-select" title="Toggle between Simplified pseudo-code and Raw LLVM IR">
+              <option value="simplified" selected>View: Simplified ✨</option>
+              <option value="raw">View: Raw LLVM IR 📋</option>
+            </select>
+            <select id="density-select" class="hud-select" title="Card Density: Compact, Standard, or Full">
+              <option value="compact">Density: Compact</option>
+              <option value="normal" selected>Density: Standard</option>
+              <option value="full">Density: Full</option>
+            </select>
+            <button id="hud-layout-btn" class="hud-btn" title="Toggle Layout Orientation (Top-to-Bottom / Left-to-Right)">Orientation: TD</button>
+          </div>
+
+          <div class="hud-divider"></div>
+
+          <div class="hud-group">
+            <button id="hud-zoom-out" class="hud-btn" title="Zoom Out">−</button>
+            <span id="hud-zoom-percent" class="hud-zoom-label">100%</span>
+            <button id="hud-zoom-in" class="hud-btn" title="Zoom In">+</button>
+            <button id="hud-fit" class="hud-btn" title="Fit Entire Graph to View">⛶ Fit</button>
+            <button id="hud-reset" class="hud-btn" title="Reset Zoom to 100%">1:1</button>
+          </div>
+        </div>
+
+        <!-- Canvas Navigation Hint -->
+        <div id="canvas-hint">Drag canvas to pan · Scroll wheel to zoom · Click block to jump in editor</div>
+
+        <!-- The Pannable/Zoomable Viewport -->
+        <div id="graph-viewport">
+          <div id="graph-target"></div>
+        </div>
+
+        <!-- Floating SSA Dependency Backtrack Drawer -->
+        <div id="ssa-drawer">
+          <div class="ssa-header">
+            <div class="ssa-title">
+              <span>SSA Backtrack:</span>
+              <span id="ssa-var-name" class="ssa-var-name">%curr</span>
+              <span id="ssa-var-type" style="color:#c084fc;font-size:0.75rem;">i32</span>
+            </div>
+            <button id="ssa-close-btn" class="ssa-close" title="Close inspector">✕</button>
+          </div>
+
+          <div class="ssa-detail-row">
+            <span class="ssa-label">Definition</span>
+            <div id="ssa-def-text" style="font-size:0.72rem;color:#f8fafc;word-break:break-all;"></div>
+          </div>
+
+          <div class="ssa-detail-row">
+            <span class="ssa-label">Upstream Inputs (Backtrack ←)</span>
+            <div id="ssa-inputs-chain" class="ssa-chain"></div>
+          </div>
+
+          <div class="ssa-detail-row">
+            <span class="ssa-label">Downstream Consumers (Used By →)</span>
+            <div id="ssa-uses-chain" class="ssa-chain"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Raw Mermaid Code -->
+      <div id="panel-mermaid" class="view-panel">
+        <pre id="mermaid-source" class="code-preview"></pre>
+      </div>
+
+      <!-- Tab 3: Graphviz DOT Code -->
+      <div id="panel-dot" class="view-panel">
+        <pre id="dot-source" class="code-preview"></pre>
+      </div>
+
+      <!-- Tab 4: Diagnostics List -->
+      <div id="panel-diags" class="view-panel">
+        <div id="diagnostics-list"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast">Message</div>
+
+  <!-- Main Application Script -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
