@@ -1,3 +1,5 @@
+mod playground;
+
 use clap::{Parser, Subcommand};
 use ir_analysis::analyze;
 use ir_core::{Document, LlvmParser};
@@ -55,6 +57,16 @@ enum Commands {
         /// Optional output file path (defaults to stdout)
         #[arg(short, long)]
         output: Option<PathBuf>,
+    },
+
+    /// Launch the interactive in-browser LLVM IR editor & visualizer playground
+    Playground {
+        /// Optional path to an LLVM IR file to pre-load
+        file: Option<PathBuf>,
+
+        /// Port to serve playground on (default 3000)
+        #[arg(short, long, default_value_t = 3000)]
+        port: u16,
     },
 }
 
@@ -229,6 +241,10 @@ async fn main() -> ExitCode {
             }
 
             ExitCode::SUCCESS
+        }
+
+        Commands::Playground { file, port } => {
+            playground::run_playground(file, port).await
         }
     }
 }

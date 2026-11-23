@@ -1,0 +1,12 @@
+{
+  "name": "llvm-ir-studio-web",
+  "version": "0.1.0",
+  "description": "In-browser LLVM IR Editor & CFG Visualizer",
+  "type": "module",
+  "scripts": {
+    "test": "node test-analyzer.js"
+  },
+  "keywords": ["llvm", "llvm-ir", "visualizer", "cfg", "compiler"],
+  "author": "Soham Tilekar",
+  "license": "MIT"
+}

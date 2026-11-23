@@ -26,5 +26,8 @@ jobs:
       - name: Run Tests
         run: cargo test --workspace --all-targets
 
+      - name: Run Web Analyzer Tests
+        run: node web/test-analyzer.js
+
       - name: Check CLI binary
         run: cargo check --bin llvm-ir-ls

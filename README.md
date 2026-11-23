@@ -30,6 +30,7 @@
 
 | Editor | Support Type | Folder / Config |
 | --- | --- | --- |
+| **Web Browser / Online** | In-Browser Editor & CFG Visualizer | [`web`](web) & `llvm-ir-ls playground` |
 | **VS Code & Cursor** | Full Extension (`.vsix`) | [`editors/vscode`](editors/vscode) |
 | **Zed** | Native Extension (`.wasm`) | [`editors/zed`](editors/zed) |
 | **Neovim / Vim** | Native `vim.lsp.start` & `nvim-lspconfig` | [`editors/neovim`](editors/neovim) |
@@ -339,6 +340,20 @@ Generate interactive HTML viewer:
 ```bash
 llvm-ir-ls cfg file.ll --fn @main --format html -o cfg.html
 ```
+
+### 4. In-Browser Playground & Live Editor
+
+Launch the built-in, zero-dependency web playground locally in your browser to edit LLVM IR with real-time CFG visualization, SSA diagnostics, and pan/zoom:
+
+```bash
+# Launch empty playground on http://127.0.0.1:3000
+llvm-ir-ls playground
+
+# Pre-load an existing LLVM IR file into the browser
+llvm-ir-ls playground file.ll --port 8080
+```
+
+The web studio is also deployable to GitHub Pages or static hosts directly from the [`web/`](web) directory.
 
 ---
 
