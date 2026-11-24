@@ -11,3 +11,5 @@ editors/zed/*.tar.gz
 release-assets/
 dist/
 skills/
+*.log
+.nvimlog

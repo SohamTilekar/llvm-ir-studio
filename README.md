@@ -16,116 +16,147 @@
 
 # LLVM IR Studio (`llvm-ir-ls`)
 
-**LLVM IR Language Server with editor integration & visualizer.**
+A fast, version-aware **Language Server Protocol (LSP)** implementation and interactive **Control Flow Graph (CFG) visualizer** for LLVM Intermediate Representation (`.ll`).
 
-`llvm-ir-ls` is a lightweight, version-aware, native LLVM IR Language Server & Visualizer written in Rust.
-
----
-
-## Editor Support
-
-`llvm-ir-ls` acts as a universal language server supporting any editor with LSP capabilities.
-
-> 📌 Track publishing and marketplace distribution status across all editors in [`DISTRIBUTION_TRACKER.md`](DISTRIBUTION_TRACKER.md).
-
-| Editor | Support Type | Folder / Config |
-| --- | --- | --- |
-| **Web Browser / Online** | In-Browser Editor & CFG Visualizer | [`web`](web) & `llvm-ir-ls playground` |
-| **VS Code & Cursor** | Full Extension (`.vsix`) | [`editors/vscode`](editors/vscode) |
-| **Zed** | Native Extension (`.wasm`) | [`editors/zed`](editors/zed) |
-| **Neovim / Vim** | Native `vim.lsp.start` & `nvim-lspconfig` | [`editors/neovim`](editors/neovim) |
-| **Helix** | Native `languages.toml` | [`editors/helix`](editors/helix) |
-| **Sublime Text** | Sublime `LSP` package | [`editors/sublime`](editors/sublime) |
-| **GNU Emacs** | `eglot` (built-in) & `lsp-mode` | [`editors/emacs`](editors/emacs) |
-| **JetBrains (CLion / Fleet)** | LSP4IJ & Fleet settings | [`editors/jetbrains`](editors/jetbrains) |
-| **Kate** | Built-in LSP Client | [`editors/kate`](editors/kate) |
+Implemented in pure Rust with zero C++ `libLLVM` dependencies, `llvm-ir-ls` provides sub-millisecond startup, incremental parsing, and syntax diagnostics across LLVM 14 to 21+.
 
 ---
 
-### 1. Visual Studio Code, Cursor & VSCodium
+## ⚡ Quickstart
 
-The extension is available on both official registries:
-- **Visual Studio Marketplace**: [Install LLVM IR Studio](https://marketplace.visualstudio.com/items?itemName=SohamTilekar.llvm-ir-studio) (`SohamTilekar.llvm-ir-studio`)
-- **Open VSX Registry** (Cursor, VSCodium, Gitpod): [Install LLVM IR Advance](https://open-vsx.org/extension/sohamtilekar/llvm-ir-advance) (`sohamtilekar/llvm-ir-advance`)
+Get up and running with `llvm-ir-ls` in two simple steps:
 
-#### Key Capabilities
-- **Full LSP Support**: Diagnostics, hover definitions, code completions, symbol rename, and document symbols.
-- **Smart Prefix Completion**: Eliminates prefix duplication when completing `@globals`, `%registers`, and `.labels`.
-- **Interactive CFG Webview**: Right-click or run `LLVM IR: Show Function CFG` to view and pan/zoom the function's control flow graph in a side panel.
-- **Automatic Language Server Provisioning**: Detects local `llvm-ir-ls` binaries or downloads the matching pre-built release automatically from GitHub Releases.
+### Step 1: Install the Language Server Binary
 
-#### Manual Installation (.vsix)
+Install the pre-compiled binary for Linux or macOS directly to `~/.local/bin`:
+
 ```bash
-code --install-extension dist/llvm-ir-advance-0.1.1.vsix
+curl -fsSL https://raw.githubusercontent.com/SohamTilekar/llvm-ir-studio/main/install.sh | bash
 ```
 
----
+<details>
+<summary>Other Installation Methods (Windows, Cargo, Manual)</summary>
 
-### 2. Zed (`llvm-ir-advance`)
-
-The Zed extension is located in [`editors/zed`](editors/zed).
-
-#### Key Capabilities
-- Tree-sitter powered syntax highlighting for `.ll` files.
-- Real-time version checking and diagnostics.
-- Go to Definition & Find References across SSA registers and basic block labels.
-- Auto-downloading binary installer powered by Zed's Extension API.
-
-#### Installation
-1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) in Zed.
-2. Run `zed: install dev extension`.
-3. Choose the [`editors/zed`](editors/zed) folder.
-
----
-
-### 3. Neovim & Standalone Installation Guide
-
-For editors without an integrated marketplace store (or for command-line setups), follow this simple 2-step setup.
-
-#### Step 1: Install the `llvm-ir-ls` Binary
-
-Choose one of the following methods to install `llvm-ir-ls` on your system `$PATH`:
-
-- **Option A: Pre-built Binary from GitHub Releases (Recommended)**:
-  Download the latest release archive for your OS from [GitHub Releases](https://github.com/SohamTilekar/llvm-ir-studio/releases):
-  ```bash
-  # Linux (x86_64)
-  curl -sL https://github.com/SohamTilekar/llvm-ir-studio/releases/download/v0.1.0/llvm-ir-ls-v0.1.0-x86_64-unknown-linux-gnu.tar.gz | tar -xz
-  sudo mv llvm-ir-ls /usr/local/bin/
-
-  # macOS (Apple Silicon)
-  curl -sL https://github.com/SohamTilekar/llvm-ir-studio/releases/download/v0.1.0/llvm-ir-ls-v0.1.0-aarch64-apple-darwin.tar.gz | tar -xz
-  sudo mv llvm-ir-ls /usr/local/bin/
+- **Windows (PowerShell)**:
+  ```powershell
+  irm https://raw.githubusercontent.com/SohamTilekar/llvm-ir-studio/main/install.ps1 | iex
   ```
-
-- **Option B: Install via Cargo (Rust toolchain)**:
+- **Via Cargo (Rust)**:
   ```bash
   cargo install --git https://github.com/SohamTilekar/llvm-ir-studio.git llvm-ir-ls
-  # or from local clone:
-  cargo install --path crates/llvm-ir-ls
   ```
+- **Pre-built Archives**: Download direct binaries for Linux, macOS, or Windows from [GitHub Releases](https://github.com/SohamTilekar/llvm-ir-studio/releases).
+</details>
 
-Verify the installation:
+Verify the binary is available in your `$PATH`:
 ```bash
 llvm-ir-ls --version
 ```
 
+### Step 2: Auto-Configure Your Editor
+
+Run the automated setup script to detect your installed editors and configure them automatically:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SohamTilekar/llvm-ir-studio/main/setup-editor.sh | bash
+```
+
+Alternatively, follow the quick manual configuration steps for your editor below.
+
 ---
 
-#### Step 2: Configure Neovim
+## 🔌 Editor Support
 
-##### Option A: Native Neovim (v0.10+ / v0.11+) — Zero External Plugins!
-Simply copy [`editors/neovim/ftplugin/llvm.lua`](editors/neovim/ftplugin/llvm.lua) to your Neovim config:
+`llvm-ir-ls` conforms to the Language Server Protocol and integrates with any LSP-capable editor.
+
+> 📌 Upstream registry publication status across all editors is tracked in [`DISTRIBUTION_TRACKER.md`](DISTRIBUTION_TRACKER.md).
+
+| Editor | Support Type | Setup Guide | Configuration / Source |
+| :--- | :--- | :--- | :--- |
+| **VS Code & Cursor** | Full Extension | [Installation Guide](#vs-code-cursor--vscodium) | [`editors/vscode`](editors/vscode) |
+| **Neovim / Vim** | Native `vim.lsp.start` / 0.11+ config | [Installation Guide](#neovim) | [`editors/neovim`](editors/neovim) |
+| **Helix** | Native `languages.toml` | [Installation Guide](#helix) | [`editors/helix`](editors/helix) |
+| **Zed** | Extension (`.wasm`) | [Installation Guide](#zed) | [`editors/zed`](editors/zed) |
+| **Sublime Text** | Sublime `LSP` package | [Installation Guide](#sublime-text) | [`editors/sublime`](editors/sublime) |
+| **GNU Emacs** | `eglot` (built-in) & `lsp-mode` | [Installation Guide](#gnu-emacs) | [`editors/emacs`](editors/emacs) |
+| **JetBrains (CLion / Fleet)** | LSP4IJ plugin / Fleet settings | [Installation Guide](#jetbrains-ides-clion--fleet) | [`editors/jetbrains`](editors/jetbrains) |
+| **Kate** | Built-in LSP Client | [Installation Guide](#kate-kde) | [`editors/kate`](editors/kate) |
+| **Web Browser** | In-Browser Live Studio & CFG | [Launch Guide](#in-browser-playground) | [`web`](web) |
+
+---
+
+### VS Code, Cursor & VSCodium
+
+The extension provides full LSP diagnostics, hover definitions, SSA rename, and an interactive side-panel CFG visualizer.
+
+#### Installation
+
+- **VS Code**: Install **LLVM IR Studio** from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=SohamTilekar.llvm-ir-studio) or run:
+  ```bash
+  code --install-extension sohamtilekar.llvm-ir-studio
+  ```
+- **Cursor**:
+  ```bash
+  cursor --install-extension sohamtilekar.llvm-ir-studio
+  ```
+- **VSCodium / Open VSX**: Install **LLVM IR Advance** from [Open VSX](https://open-vsx.org/extension/sohamtilekar/llvm-ir-advance) or run:
+  ```bash
+  codium --install-extension sohamtilekar.llvm-ir-advance
+  ```
+- **Manual VSIX**: Download the latest `.vsix` package from [GitHub Releases](https://github.com/SohamTilekar/llvm-ir-studio/releases) and install via `Extensions: Install from VSIX...`.
+
+#### Visualizing CFGs
+Open any `.ll` file and press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) -> run `LLVM IR: Show Function CFG`.
+
+---
+
+### Neovim
+
+Neovim supports `llvm-ir-ls` out-of-the-box with **zero external plugins required**.
+
+#### Quick Setup (Automated)
+
 ```bash
-mkdir -p ~/.config/nvim/ftplugin
-cp editors/neovim/ftplugin/llvm.lua ~/.config/nvim/ftplugin/llvm.lua
+./setup-editor.sh --neovim
 ```
-Whenever you open any `.ll` file:
-- Neovim automatically attaches `llvm-ir-ls`.
-- Pre-wires LSP keymaps: `gd` (definition), `gr` (references), `K` (hover), `<leader>rn` (rename), `<leader>ca` (code actions).
-- Adds `:LLVMCheck` and `:LLVMCFG` commands to preview Control Flow Graphs in your browser.
 
-##### Option B: `nvim-lspconfig`
+#### Manual Setup
+
+##### Option A: Native Neovim (v0.10+ / v0.11+) — Recommended (Zero Plugins)
+
+1. Ensure `.ll` filetype detection is registered in `~/.config/nvim/ftdetect/llvm.lua`:
+   ```lua
+   vim.filetype.add({ extension = { ll = 'llvm' } })
+   ```
+
+2. Copy [`editors/neovim/ftplugin/llvm.lua`](editors/neovim/ftplugin/llvm.lua) to `~/.config/nvim/ftplugin/llvm.lua`:
+   ```bash
+   mkdir -p ~/.config/nvim/ftplugin
+   cp editors/neovim/ftplugin/llvm.lua ~/.config/nvim/ftplugin/llvm.lua
+   ```
+
+When opening any `.ll` file, Neovim automatically attaches `llvm-ir-ls` and sets up standard navigation keymaps:
+- `gd` — Go to definition (SSA register or `@global` symbol)
+- `gr` — Find all SSA references
+- `K` — Hover for LLVM LangRef instruction syntax
+- `<leader>rn` — Rename SSA register or label within function scope
+- `:LLVMCheck` — Validate current IR and show diagnostics
+- `:LLVMCFG` — Generate and view interactive HTML Control Flow Graph in default browser
+
+##### Option B: Neovim 0.11+ Native File-Based LSP Config
+
+Copy [`editors/neovim/lsp/llvm_ir_ls.lua`](editors/neovim/lsp/llvm_ir_ls.lua) to `~/.config/nvim/lsp/llvm_ir_ls.lua`:
+```bash
+mkdir -p ~/.config/nvim/lsp
+cp editors/neovim/lsp/llvm_ir_ls.lua ~/.config/nvim/lsp/llvm_ir_ls.lua
+```
+Then add to your `init.lua`:
+```lua
+vim.lsp.enable('llvm_ir_ls')
+```
+
+##### Option C: Legacy `nvim-lspconfig` (Neovim 0.9 / 0.10)
+
 Add to your `init.lua`:
 ```lua
 local lspconfig = require('lspconfig')
@@ -142,20 +173,16 @@ if not configs.llvm_ir_ls then
   }
 end
 
-lspconfig.llvm_ir_ls.setup{}
+lspconfig.llvm_ir_ls.setup({})
 ```
 
-##### Option C: Quick Test Without Modifying Your Config
-Run Neovim using the included test config directly against any test fixture:
-```bash
-nvim -u editors/neovim/test-init.lua tests/fixtures/syntax_broken.ll
-```
+> **Note on Mason:** The language server binary is not distributed via the Mason registry. Please install the binary using `install.sh`, Cargo, or GitHub Releases as described in [Step 1](#step-1-install-the-language-server-binary).
 
 ---
 
-### 4. Helix
+### Helix
 
-Drop-in configuration is available in [`editors/helix/languages.toml`](editors/helix/languages.toml). Add to `~/.config/helix/languages.toml`:
+Add the language and server definitions to `~/.config/helix/languages.toml` (or run `./setup-editor.sh --helix`):
 
 ```toml
 [[language]]
@@ -172,19 +199,28 @@ command = "llvm-ir-ls"
 args = ["lsp"]
 ```
 
-Verify with:
+Verify your setup:
 ```bash
 hx --health llvm
 ```
 
 ---
 
-### 5. Sublime Text 3 & 4
+### Zed
 
-See [`editors/sublime`](editors/sublime) for details.
+The Zed extension source is located in [`editors/zed`](editors/zed).
 
-1. Install the `LSP` package via Package Control.
-2. Add the following to `Preferences: LSP Settings` (`LSP.sublime-settings`):
+#### Installation
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS) in Zed.
+2. Select **`zed: install dev extension`**.
+3. Choose the [`editors/zed`](editors/zed) directory.
+
+---
+
+### Sublime Text
+
+1. Install the `LSP` package from Package Control.
+2. Open **Preferences** -> **Package Settings** -> **LSP** -> **Settings** (`LSP.sublime-settings`) and add:
 
 ```json
 {
@@ -201,11 +237,11 @@ See [`editors/sublime`](editors/sublime) for details.
 
 ---
 
-### 6. GNU Emacs
+### GNU Emacs
 
-See [`editors/emacs`](editors/emacs) for details and helper package [`llvm-ir-ls.el`](editors/emacs/llvm-ir-ls.el).
+See [`editors/emacs`](editors/emacs) for details and helper module [`llvm-ir-ls.el`](editors/emacs/llvm-ir-ls.el).
 
-#### Eglot (Emacs 29+)
+#### Eglot (Emacs 29+ built-in)
 ```elisp
 (require 'eglot)
 (add-to-list 'auto-mode-alist '("\\.ll\\'" . llvm-mode))
@@ -224,11 +260,9 @@ See [`editors/emacs`](editors/emacs) for details and helper package [`llvm-ir-ls
 
 ---
 
-### 7. JetBrains IDEs (CLion, RustRover, Fleet, IntelliJ)
+### JetBrains IDEs (CLion & Fleet)
 
-See [`editors/jetbrains`](editors/jetbrains) for details.
-
-- **CLion / RustRover / IntelliJ IDEA**: Install the official **LSP4IJ** plugin, then go to **Settings** -> **Languages & Frameworks** -> **Language Servers** -> add `llvm-ir-ls lsp` matching `*.ll` files.
+- **CLion / RustRover / IntelliJ**: Install the official **LSP4IJ** plugin. Go to **Settings** -> **Languages & Frameworks** -> **Language Servers** -> add a new server with executable `llvm-ir-ls`, argument `lsp`, and file pattern `*.ll`.
 - **JetBrains Fleet**: Add to `.fleet/settings.json`:
   ```json
   {
@@ -243,9 +277,9 @@ See [`editors/jetbrains`](editors/jetbrains) for details.
 
 ---
 
-### 8. Kate (KDE Text Editor)
+### Kate (KDE)
 
-See [`editors/kate`](editors/kate) for details. Enable the built-in **LSP Client** plugin and add to **Settings** -> **Configure Kate...** -> **LSP Client** -> **User Server Settings**:
+Enable the built-in **LSP Client** plugin. Open **Settings** -> **Configure Kate...** -> **LSP Client** -> **User Server Settings**, and paste:
 
 ```json
 {
@@ -262,114 +296,84 @@ See [`editors/kate`](editors/kate) for details. Enable the built-in **LSP Client
 
 ---
 
-## Architecture & Core Features
+### In-Browser Playground
 
-`llvm-ir-ls` brings first-class developer tooling for LLVM Intermediate Representation (`.ll`) files:
-- **Zero `libLLVM` C++ linking**: Pure Rust implementation with instantaneous startup and tiny memory footprint.
-- **LLVM Version Awareness**: Tracks syntax evolution across LLVM 14 to 21+ (opaque `ptr` vs typed pointers `i32*`, explicit `getelementptr` types, deprecated attributes like `readnone` → `memory(...)`).
-- **Incremental & Error-Tolerant**: Powered by Tree-sitter for uninterrupted syntax parsing even on partially written or broken IR files.
-- **SSA Def-Use Analysis**: Instant Go-to-Definition, Find All References, and in-function SSA register/basic block renaming.
-- **Control Flow Graph (CFG) Visualizer**: Interactive flowcharts rendered directly inside VS Code or exported to Mermaid, Graphviz DOT, and standalone HTML/SVG.
-- **AI Coding Agent Ready**: Machine-readable diagnostic codes (`LLVM-SYNTAX-001`, `LLVM-VER-001`, `LLVM-SSA-001`, `LLVM-CFG-001`), related information spans, and quick-fix code actions.
-
----
-
-## Workspace Layout
-
-```text
-llvm-ir-studio/
-├── Cargo.toml
-├── crates/
-│   ├── ir-core/          # Incremental Tree-sitter parser, document store, UTF-16 position mapper
-│   ├── ir-version/       # Version profiles (LLVM 14–21+), compatibility rules, heuristic detection
-│   ├── ir-analysis/      # Syntax & semantic analysis, symbol table, SSA def-use chains, CFG builder
-│   ├── ir-docs/          # LLVM LangRef instruction hover documentation
-│   ├── ir-viz/           # CFG visualizer (Mermaid, Graphviz DOT, interactive HTML)
-│   ├── ir-lsp/           # tower-lsp implementation (diagnostics, semantic tokens, actions, completions)
-│   └── llvm-ir-ls/       # Unified CLI binary (`lsp`, `check`, `cfg`)
-├── editors/
-│   ├── vscode/           # VS Code extension (TypeScript LSP client, TextMate grammar, Webview CFG)
-│   ├── zed/              # Zed Rust/WASM extension with auto-downloader
-│   ├── neovim/           # Neovim plugin, ftplugin, and lspconfig integration
-│   ├── helix/            # Helix languages.toml configuration
-│   ├── sublime/          # Sublime Text LSP package configuration
-│   ├── emacs/            # Emacs eglot and lsp-mode integration (llvm-ir-ls.el)
-│   ├── jetbrains/        # JetBrains CLion/RustRover/IntelliJ (LSP4IJ) & Fleet settings
-│   └── kate/             # KDE Kate editor LSP client configuration
-└── tests/
-    └── fixtures/         # Multi-version LLVM IR fixtures
-```
-
----
-
-## CLI Usage
-
-### 1. Launch Language Server (LSP Mode)
-
-```bash
-llvm-ir-ls lsp
-# or simply
-llvm-ir-ls
-```
-
-### 2. IR Validation & Diagnostics
-
-Human-readable terminal output:
-```bash
-llvm-ir-ls check file.ll --version 18
-```
-
-Machine-readable JSON output for AI coding agents and CI:
-```bash
-llvm-ir-ls check file.ll --format json
-```
-
-### 3. CFG Visualization
-
-Export Mermaid diagram:
-```bash
-llvm-ir-ls cfg file.ll --fn @main --format mermaid
-```
-
-Export Graphviz DOT file:
-```bash
-llvm-ir-ls cfg file.ll --fn @main --format dot -o cfg.dot
-```
-
-Generate interactive HTML viewer:
-```bash
-llvm-ir-ls cfg file.ll --fn @main --format html -o cfg.html
-```
-
-### 4. In-Browser Playground & Live Editor
-
-Launch the built-in, zero-dependency web playground locally in your browser to edit LLVM IR with real-time CFG visualization, SSA diagnostics, and pan/zoom:
+Launch the zero-dependency local web studio to inspect and edit LLVM IR files with real-time CFG rendering and diagnostics:
 
 ```bash
 # Launch empty playground on http://127.0.0.1:3000
 llvm-ir-ls playground
 
-# Pre-load an existing LLVM IR file into the browser
-llvm-ir-ls playground file.ll --port 8080
+# Pre-load an existing file on custom port
+llvm-ir-ls playground example.ll --port 8080
 ```
-
-The web studio is also deployable to GitHub Pages or static hosts directly from the [`web/`](web) directory.
 
 ---
 
-## Building from Source
+## 🛠 Features & Capabilities
+
+- **Zero C++ Dependencies**: Pure Rust architecture with instantaneous startup and low memory overhead.
+- **LLVM Version Awareness**: Validates syntax rules across LLVM 14 through 21+ (opaque pointers `ptr` vs typed pointers `i32*`, explicit `getelementptr` element types, attribute syntax migrations).
+- **Error-Tolerant Tree-sitter Parsing**: Provides uninterrupted syntax trees and diagnostics even on incomplete or malformed IR.
+- **SSA Def-Use Analysis**: Instant Go-to-Definition, Find All References, and function-scoped register/block renaming.
+- **Interactive Control Flow Graph (CFG)**: Generates visual CFG diagrams in interactive HTML, Mermaid, and Graphviz DOT formats.
+- **Standardized Diagnostics**: Deterministic error codes (`LLVM-SYNTAX-001`, `LLVM-VER-001`, `LLVM-SSA-001`, `LLVM-CFG-001`) with precise source ranges.
+
+---
+
+## 💻 CLI Usage
+
+The `llvm-ir-ls` binary functions as both a language server and a command-line tool.
+
+### 1. IR Syntax & Compatibility Checking
+
+Human-readable output:
+```bash
+llvm-ir-ls check input.ll --version 18
+```
+
+JSON output for scripts and CI pipelines:
+```bash
+llvm-ir-ls check input.ll --format json
+```
+
+### 2. Control Flow Graph Export
+
+Generate interactive standalone HTML:
+```bash
+llvm-ir-ls cfg input.ll --fn @main --format html -o cfg.html
+```
+
+Generate Mermaid diagram:
+```bash
+llvm-ir-ls cfg input.ll --fn @main --format mermaid
+```
+
+Generate Graphviz DOT:
+```bash
+llvm-ir-ls cfg input.ll --fn @main --format dot -o cfg.dot
+```
+
+### 3. Launch Language Server (LSP Mode)
+
+```bash
+llvm-ir-ls lsp
+```
+
+---
+
+## 🏗 Building from Source
 
 Prerequisites: Rust stable toolchain (`cargo`).
 
 ```bash
-# Clone the repository
 git clone https://github.com/SohamTilekar/llvm-ir-studio.git
 cd llvm-ir-studio
 
 # Build optimized binary
 cargo build --release --bin llvm-ir-ls
 
-# Install binary to ~/.cargo/bin or ~/.local/bin
+# Install to ~/.cargo/bin
 cargo install --path crates/llvm-ir-ls
 ```
 
@@ -377,3 +381,9 @@ Run test suite:
 ```bash
 cargo test
 ```
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).

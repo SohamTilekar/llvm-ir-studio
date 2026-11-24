@@ -1,45 +1,69 @@
 # LLVM IR Language Server (`llvm-ir-ls`) for Neovim
 
-The official, native **LLVM IR Language Server & Visualizer** for Neovim:
-- **Real-time Diagnostics**: Syntax errors, SSA violations, and version incompatibility warnings.
-- **Go-to-Definition (`gd`)**: Jump from `%local` registers, `@global` symbols, and `br` labels to their definitions.
-- **Find References (`gr`)**: Find all SSA usages and call sites across the module.
-- **Rename Symbol (`<leader>rn`)**: Rename SSA registers and basic block labels in function scope.
-- **Hover Documentation (`K`)**: Rich LLVM LangRef instruction documentation and type signatures.
-- **Semantic Highlighting**: Accurate token classification for globals, registers, types, and labels.
-- **Quick-Fix Code Actions**: Deterministic fixes for version migration.
+Native LLVM IR Language Server integration for Neovim (v0.10+ / v0.11+).
 
 ---
 
-## Package Installation via Mason (`mason.nvim`)
+## 🚀 Quick Setup (Automated)
 
-Neovim users can install and manage the language server binary automatically via [Mason](https://github.com/williamboman/mason.nvim):
+Run the auto-setup script from the root of this repository:
 
-```vim
-:MasonInstall llvm-ir-ls
-```
-
-The package recipe and upstream submission instructions are available in [`editors/neovim/mason`](mason/README.md).
-
----
-
-## Quick Start Options
-
-### Option 1: Native Neovim (v0.10+ / v0.11+) — Zero External Plugins
-
-Neovim 0.10+ includes built-in LSP client management with `vim.lsp.start`.
-
-Copy [`ftplugin/llvm.lua`](ftplugin/llvm.lua) to your Neovim configuration directory:
 ```bash
-mkdir -p ~/.config/nvim/ftplugin
-cp ftplugin/llvm.lua ~/.config/nvim/ftplugin/llvm.lua
+./setup-editor.sh --neovim
 ```
 
-Whenever you open a `.ll` file, Neovim will automatically launch `llvm-ir-ls lsp` and attach it to the buffer!
+Or via curl:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/SohamTilekar/llvm-ir-studio/main/setup-editor.sh | bash -s -- --neovim
+```
+
+This automatically installs the filetype detection and native LSP client configurations directly into your `~/.config/nvim/` directory.
 
 ---
 
-### Option 2: `nvim-lspconfig` Setup
+## 🛠 Manual Configuration
+
+### Option 1: Native Neovim (v0.10+ / v0.11+) — Recommended (Zero Plugins)
+
+Neovim has built-in LSP client management. You do not need any external plugins!
+
+1. **Filetype Detection**: Ensure `~/.config/nvim/ftdetect/llvm.lua` exists:
+   ```lua
+   vim.filetype.add({ extension = { ll = 'llvm' } })
+   ```
+
+2. **LSP Autostart**: Copy [`ftplugin/llvm.lua`](ftplugin/llvm.lua) to `~/.config/nvim/ftplugin/llvm.lua`:
+   ```bash
+   mkdir -p ~/.config/nvim/ftplugin
+   cp ftplugin/llvm.lua ~/.config/nvim/ftplugin/llvm.lua
+   ```
+
+Whenever you open any `.ll` file:
+- Neovim automatically attaches `llvm-ir-ls`.
+- Pre-wires standard keymaps: `gd` (definition), `gr` (references), `K` (hover), `<leader>rn` (rename), `<leader>ca` (code action).
+- Provides buffer commands `:LLVMCheck` and `:LLVMCFG`.
+
+---
+
+### Option 2: Neovim 0.11+ Native LSP Config
+
+If you are using Neovim 0.11+, you can use the native file-based LSP configuration:
+
+1. Copy [`lsp/llvm_ir_ls.lua`](lsp/llvm_ir_ls.lua) to `~/.config/nvim/lsp/llvm_ir_ls.lua`:
+   ```bash
+   mkdir -p ~/.config/nvim/lsp
+   cp lsp/llvm_ir_ls.lua ~/.config/nvim/lsp/llvm_ir_ls.lua
+   ```
+
+2. Enable the server in your `init.lua`:
+   ```lua
+   vim.lsp.enable('llvm_ir_ls')
+   ```
+
+---
+
+### Option 3: `nvim-lspconfig` (Neovim 0.10 and earlier)
 
 If you use `nvim-lspconfig`, add the following to your `init.lua`:
 
@@ -47,7 +71,6 @@ If you use `nvim-lspconfig`, add the following to your `init.lua`:
 local lspconfig = require('lspconfig')
 local configs = require('lspconfig.configs')
 
--- Register llvm-ir-ls server configuration if not already present
 if not configs.llvm_ir_ls then
   configs.llvm_ir_ls = {
     default_config = {
@@ -59,73 +82,17 @@ if not configs.llvm_ir_ls then
   }
 end
 
--- Setup with standard LSP keybindings & capabilities (e.g. nvim-cmp)
-local capabilities = vim.lsp.protocol.make_client_capabilities()
--- If using nvim-cmp:
--- capabilities = require('cmp_nvim_lsp').default_capabilities(capabilities)
-
-lspconfig.llvm_ir_ls.setup({
-  capabilities = capabilities,
-  on_attach = function(client, bufnr)
-    local opts = { noremap = true, silent = true, buffer = bufnr }
-    local map = vim.keymap.set
-
-    -- Navigation
-    map('n', 'gd', vim.lsp.buf.definition, opts)
-    map('n', 'gr', vim.lsp.buf.references, opts)
-    map('n', 'K', vim.lsp.buf.hover, opts)
-    map('n', '<leader>rn', vim.lsp.buf.rename, opts)
-    map('n', '<leader>ca', vim.lsp.buf.code_action, opts)
-
-    -- Diagnostic jumps
-    map('n', '[d', vim.diagnostic.goto_prev, opts)
-    map('n', ']d', vim.diagnostic.goto_next, opts)
-    map('n', '<leader>e', vim.diagnostic.open_float, opts)
-  end,
-})
+lspconfig.llvm_ir_ls.setup({})
 ```
 
 ---
 
-### Option 3: `lazy.nvim` Spec with `nvim-treesitter` & Completion
+## ⌨️ Features & Commands
 
-For users managing configuration with `lazy.nvim`:
-
-```lua
-return {
-  -- Syntax Highlighting
-  {
-    "nvim-treesitter/nvim-treesitter",
-    opts = function(_, opts)
-      opts.ensure_installed = opts.ensure_installed or {}
-      vim.list_extend(opts.ensure_installed, { "llvm" })
-    end,
-  },
-
-  -- LSP Configuration
-  {
-    "neovim/nvim-lspconfig",
-    opts = {
-      servers = {
-        llvm_ir_ls = {
-          cmd = { "llvm-ir-ls", "lsp" },
-          filetypes = { "llvm" },
-          root_dir = function(fname)
-            local util = require("lspconfig.util")
-            return util.root_pattern(".llvm-ir-ls.toml", ".git")(fname) or util.path.dirname(fname)
-          end,
-        },
-      },
-    },
-  },
-}
-```
-
----
-
-## Built-In Commands in `ftplugin/llvm.lua`
-
-When using the provided [`ftplugin/llvm.lua`](ftplugin/llvm.lua), the following extra commands are defined:
-
-* `:LLVMCheck` — Runs `llvm-ir-ls check` on the current file and populates the Neovim Quickfix list (`:copen`).
-* `:LLVMCFG [function_name]` — Generates the CFG for the function under the cursor (or specified name) into an HTML file and opens it in your default browser.
+Once attached to a `.ll` buffer:
+- **`gd`**: Go to definition of SSA register or `@global` symbol.
+- **`gr`**: Find all SSA usages and call references.
+- **`K`**: Hover for LLVM LangRef instruction syntax and documentation.
+- **`<leader>rn`**: In-function SSA rename.
+- **`:LLVMCheck`**: Run IR validation and print diagnostics.
+- **`:LLVMCFG`**: Generate and open the function's Control Flow Graph in your default web browser.

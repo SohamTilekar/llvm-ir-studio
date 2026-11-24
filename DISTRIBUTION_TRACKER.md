@@ -13,7 +13,7 @@ Last Updated: November 2026
 | **VS Code & Cursor** | `LLVM IR Studio` (`SohamTilekar.llvm-ir-studio`) | [Visual Studio Marketplace](https://marketplace.visualstudio.com/) | 🟡 **Published (Under Review)** | [Marketplace Link](https://marketplace.visualstudio.com/items?itemName=SohamTilekar.llvm-ir-studio) | Uploaded & available; publisher verification / review pending. |
 | **Open VSX (VSCodium, Gitpod)** | `LLVM IR Advance` (`sohamtilekar/llvm-ir-advance`) | [Open VSX Registry](https://open-vsx.org/) | 🟡 **Published (Under Review)** | [Open VSX Link](https://open-vsx.org/extension/sohamtilekar/llvm-ir-advance) | Uploaded & available; review in progress. |
 | **Zed** | `LLVM IR Advance` (`llvm-ir-advance`) | [Zed Extensions Registry](https://github.com/zed-industries/extensions) | 🔵 **In Progress** | PR to `zed-industries/extensions` | WASM extension with automatic binary downloader built and tested. |
-| **Neovim (Mason)** | `LLVM IR Language Server` (`llvm-ir-ls`) | [Mason Registry](https://github.com/mason-org/mason-registry) | 🔴 **On Hold** | `packages/llvm-ir-ls` | Put on hold due to Mason inclusion criteria (stars/usage threshold). |
+| **Neovim (Mason)** | `LLVM IR Language Server` (`llvm-ir-ls`) | [Mason Registry](https://github.com/mason-org/mason-registry) | 🔴 **Declined / Ineligible** | `packages/llvm-ir-ls` | Registry inclusion not approved by maintainers due to external repository star/download thresholds. Users install via official `install.sh`, Cargo, or GitHub Releases. |
 | **Neovim (Upstream)** | `llvm_ir_ls` | [neovim/nvim-lspconfig](https://github.com/neovim/nvim-lspconfig) | 🔵 **In Progress (PR Ready)** | [Open PR](https://github.com/SohamTilekar/nvim-lspconfig/pull/new/add-llvm-ir-ls) | Branch `add-llvm-ir-ls` pushed to fork; ready to open PR. |
 | **Neovim (Native / Local)** | `llvm-ir-ls` | Built-in Neovim `vim.lsp.start` | 🟢 **Complete** | [`editors/neovim/ftplugin`](editors/neovim/ftplugin) | Zero-plugin native setup tested and fully working. |
 | **Sublime Text** | `LSP-llvm-ir` | [Sublime Package Control](https://packagecontrol.io/) | 🔵 **In Progress (PR Ready)** | [Open PR](https://github.com/SohamTilekar/package_control_channel/pull/new/add-lsp-llvm-ir) | Branch `add-lsp-llvm-ir` pushed to fork; ready to open PR. |
@@ -38,7 +38,7 @@ Last Updated: November 2026
 ### 1. Visual Studio Code & Open VSX (Cursor, VSCodium, Gitpod)
 - **VS Code Marketplace**: [`SohamTilekar.llvm-ir-studio`](https://marketplace.visualstudio.com/items?itemName=SohamTilekar.llvm-ir-studio)
 - **Open VSX Registry**: [`sohamtilekar/llvm-ir-advance`](https://open-vsx.org/extension/sohamtilekar/llvm-ir-advance)
-- **Package File**: `dist/llvm-ir-advance-0.1.1.vsix`
+- **Package File**: `llvm-ir-studio-${VERSION}.vsix` (available from GitHub Releases & Marketplaces)
 - **Current Status**:
   - **VS Code Marketplace**: 🟡 Uploaded and live; publisher verification / review in progress.
   - **Open VSX Registry**: 🟡 Uploaded and live; review in progress.
@@ -58,7 +58,7 @@ Last Updated: November 2026
 - **Display Name**: `LLVM IR Language Server`
 - **Current Status**:
   - **Local Native Support**: 🟢 **Working**. Tested and verified with [`editors/neovim/test-init.lua`](editors/neovim/test-init.lua) and [`editors/neovim/ftplugin/llvm.lua`](editors/neovim/ftplugin/llvm.lua).
-  - **Mason Registry**: 🔴 **On Hold** (placed on hold due to Mason criteria). Manifest is preserved in [`editors/neovim/mason/package.yaml`](editors/neovim/mason/package.yaml) for when criteria are met.
+  - **Mason Registry**: 🔴 **Declined / Ineligible**. Inclusion was not approved due to Mason's external star/usage threshold. Manifest is preserved in [`editors/neovim/mason/package.yaml`](editors/neovim/mason/package.yaml) for future re-evaluation. Binary is distributed via official install script, GitHub Releases, and Cargo.
   - **`nvim-lspconfig`**: Upstream server config is ready at [`editors/neovim/nvim-lspconfig/llvm_ir_ls.lua`](editors/neovim/nvim-lspconfig/llvm_ir_ls.lua).
 
 ### 4. Sublime Text

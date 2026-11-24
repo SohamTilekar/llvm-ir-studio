@@ -1,26 +1,18 @@
 -- ftplugin/llvm.lua
 -- Neovim filetype plugin for LLVM IR (.ll) files
--- Automatically connects to `llvm-ir-ls` and sets up helper commands.
+-- Zero-plugin native LSP client configuration (Neovim 0.10+ / 0.11+)
 
--- Ensure filetype is recognized as llvm
 vim.bo.commentstring = "; %s"
 
 -- 1. Start or attach the LSP server (Native Neovim 0.10+)
 if vim.lsp and vim.lsp.start then
-  local root_files = { '.llvm-ir-ls.toml', '.git' }
-  local root_dir = vim.fs.dirname(vim.fs.find(root_files, { upward = true, path = vim.api.nvim_buf_get_name(0) })[1])
-    or vim.fn.expand('%:p:h')
+  local root = vim.fs.root(0, { '.llvm-ir-ls.toml', '.git' }) or vim.fn.expand('%:p:h')
 
   vim.lsp.start({
     name = 'llvm-ir-ls',
     cmd = { 'llvm-ir-ls', 'lsp' },
-    root_dir = root_dir,
+    root_dir = root,
     settings = {},
-  }, {
-    bufnr = 0,
-    reuse_client = function(client, config)
-      return client.name == config.name and client.config.root_dir == config.root_dir
-    end,
   })
 end
 
@@ -37,7 +29,7 @@ map('n', '<leader>ca', vim.lsp.buf.code_action, opts)
 map('n', '[d', vim.diagnostic.goto_prev, opts)
 map('n', ']d', vim.diagnostic.goto_next, opts)
 
--- 3. Custom Commands for IR validation and CFG visualization
+-- 3. Commands: :LLVMCheck and :LLVMCFG
 vim.api.nvim_buf_create_user_command(bufnr, 'LLVMCheck', function()
   local file = vim.fn.expand('%:p')
   local cmd = string.format('llvm-ir-ls check %s', vim.fn.shellescape(file))
@@ -62,11 +54,10 @@ vim.api.nvim_buf_create_user_command(bufnr, 'LLVMCFG', function(args)
   )
   vim.fn.system(cmd)
   if vim.v.shell_error == 0 then
-    -- Open generated HTML in default browser
     local open_cmd = vim.fn.has('mac') == 1 and 'open' or (vim.fn.has('win32') == 1 and 'start' or 'xdg-open')
     vim.fn.system(string.format('%s %s', open_cmd, vim.fn.shellescape(out_file)))
     print('Rendered CFG for ' .. fn_name .. ' -> ' .. out_file)
   else
     print('Failed to generate CFG for ' .. fn_name)
   end
-end, { nargs = '?', desc = 'Generate and view HTML CFG for current function' })
+end, { nargs = '?', desc = 'Generate and view HTML CFG for current function in browser' })

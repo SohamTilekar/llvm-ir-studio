@@ -121,7 +121,8 @@ jobs:
         run: |
           cd editors/vscode
           npm ci
-          npx @vscode/vsce package --no-dependencies --skip-license --out ../../release-assets/llvm-ir-advance-${{ github.ref_name }}.vsix
+          npx @vscode/vsce package --no-dependencies --skip-license --out ../../release-assets/llvm-ir-studio-${{ github.ref_name }}.vsix
+          cp ../../release-assets/llvm-ir-studio-${{ github.ref_name }}.vsix ../../release-assets/llvm-ir-advance-${{ github.ref_name }}.vsix
           cd ../..
 
       - name: Package Zed Extension (.tar.gz)
@@ -130,7 +131,7 @@ jobs:
           cd editors/zed
           cargo build --release --target wasm32-wasip1
           cp target/wasm32-wasip1/release/zed_llvm_ir_advance.wasm extension.wasm
-          tar -czvf ../../release-assets/llvm-ir-advance-zed-${{ github.ref_name }}.tar.gz extension.toml extension.wasm languages/ README.md
+          tar -czvf ../../release-assets/llvm-ir-advance-zed-${{ github.ref_name }}.tar.gz extension.toml extension.wasm languages/ README.md icon.png
           cd ../..
 
       - name: Generate Checksums

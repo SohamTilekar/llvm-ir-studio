@@ -12,7 +12,8 @@ mkdir -p "${DIST_DIR}"
 echo "--- Packaging VS Code Extension ---"
 cd "${ROOT_DIR}/editors/vscode"
 npm run build
-npx @vscode/vsce package --no-dependencies --skip-license --out "${DIST_DIR}/llvm-ir-advance-${VERSION}.vsix"
+npx @vscode/vsce package --no-dependencies --skip-license --out "${DIST_DIR}/llvm-ir-studio-${VERSION}.vsix"
+cp "${DIST_DIR}/llvm-ir-studio-${VERSION}.vsix" "${DIST_DIR}/llvm-ir-advance-${VERSION}.vsix"
 
 # 2. Package Zed Extension (.tar.gz)
 echo "--- Packaging Zed Extension ---"

@@ -440,7 +440,7 @@ dependencies = [
 
 [[package]]
 name = "ir-analysis"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ir-core",
  "ir-version",
@@ -452,7 +452,7 @@ dependencies = [
 
 [[package]]
 name = "ir-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ropey",
  "tower-lsp",
@@ -462,14 +462,14 @@ dependencies = [
 
 [[package]]
 name = "ir-docs"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ir-version",
 ]
 
 [[package]]
 name = "ir-lsp"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ir-analysis",
  "ir-core",
@@ -486,7 +486,7 @@ dependencies = [
 
 [[package]]
 name = "ir-version"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -495,7 +495,7 @@ dependencies = [
 
 [[package]]
 name = "ir-viz"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "ir-analysis",
  "ir-core",
@@ -534,7 +534,7 @@ checksum = "47d9d19d1d6efa0109d2f65ff4c85cddd50bd572e5a00127ab10987290bcefae"
 
 [[package]]
 name = "llvm-ir-ls"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "ir-analysis",
